@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Casdoor Login (Token in Cookie)</title>
+</head>
+<body>
+<h2>Casdoor Login (Token in Cookie)</h2>
+<div id="auth-status"></div>
+<button id="login-btn" onclick="window.location.href='/login'">Login with Casdoor</button>
+<button id="userinfo-btn" onclick="getUserInfo()">Get User Info</button>
+<button id="logout-btn" onclick="logout()">Logout</button>
+<pre id="userinfo"></pre>
+<script>
+    function getCookie(name) {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop().split(';').shift();
+    }
+
+    function checkAuth() {
+        const token = getCookie('access_token');
+        if (!token) {
+            document.getElementById('auth-status').textContent = 'You are not authorized!';
+            document.getElementById('login-btn').style.display = '';
+            document.getElementById('userinfo-btn').style.display = 'none';
+            document.getElementById('logout-btn').style.display = 'none';
+            return;
+        }
+        fetch('/userinfo')
+            .then(res => {
+                if (res.status === 200) {
+                    document.getElementById('auth-status').textContent = 'You are authorized!';
+                    document.getElementById('login-btn').style.display = 'none';
+                    document.getElementById('userinfo-btn').style.display = '';
+                    document.getElementById('logout-btn').style.display = '';
+                } else {
+                    document.getElementById('auth-status').textContent = 'You are not authorized!';
+                    document.getElementById('login-btn').style.display = '';
+                    document.getElementById('userinfo-btn').style.display = 'none';
+                    document.getElementById('logout-btn').style.display = 'none';
+                }
+            })
+            .catch(() => {
+                document.getElementById('auth-status').textContent = 'You are not authorized!';
+                document.getElementById('login-btn').style.display = '';
+                document.getElementById('userinfo-btn').style.display = 'none';
+                document.getElementById('logout-btn').style.display = 'none';
+            });
+    }
+
+    function getUserInfo() {
+        fetch('/userinfo')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('userinfo').textContent = JSON.stringify(data, null, 2);
+            });
+    }
+
+    function logout() {
+        document.cookie = "access_token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Secure";
+        window.location.href = "/";
+    }
+    checkAuth();
+</script>
+</body>
+</html>
